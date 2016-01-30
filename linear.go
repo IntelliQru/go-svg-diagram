@@ -113,10 +113,10 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 	val := int(minValue)
 	top := d.Height - dsMarginBottom
 
-	s.Group(fmt.Sprintf("alignment-baseline:central;text-anchor:end;font-size:%d;fill:%s",
+	s.Group(fmt.Sprintf("text-anchor:end;font-size:%d;fill:%s",
 		dsLabelsFontSize, dsLabelsFontColor))
 	for i := 0; i < vCount; i++ {
-		s.Text(dsMarginLeft-dsValuesMargin, top, fmt.Sprintf("%d", val))
+		s.Text(dsMarginLeft-dsValuesMargin, top, fmt.Sprintf("%d", val), "alignment-baseline:central")
 		val += d.VStep
 		top -= yStep
 	}
