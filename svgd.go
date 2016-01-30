@@ -23,8 +23,6 @@ const (
 	dsTitleFontColor  = "#3C3C3C"
 	dsLabelsFontColor = "#3C3C3C"
 
-	dsLinearWidth = 3
-
 	dsLegendMarkSize = 15
 	dsLegendFontSize = 10
 	dsLegendFontColor = "#3C3C3C"
