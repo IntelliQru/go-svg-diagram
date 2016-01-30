@@ -9,7 +9,9 @@ import (
 
 type LinearCategory struct {
 	Color  string
+	LineWidth int
 	values []float64
+
 }
 
 func (lc *LinearCategory) SetValues(vals []float64)  {
@@ -77,7 +79,7 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 
 	// Title
 	s.Text(d.Width/2, dsMarginTop/2, d.Title,
-		fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsTitleFontSize, dsTitleFontColor))
+		fmt.Sprintf("text-anchor:middle;font-size:%dpx;fill:%s", dsTitleFontSize, dsTitleFontColor))
 
 	// Y axis
 	s.Line(dsMarginLeft, d.Height-dsMarginBottom, dsMarginLeft, dsMarginTop,
@@ -111,7 +113,8 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 	val := int(minValue)
 	top := d.Height - dsMarginBottom
 
-	s.Group(fmt.Sprintf("text-anchor:end;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+	s.Group(fmt.Sprintf("alignment-baseline:central;text-anchor:end;font-size:%d;fill:%s",
+		dsLabelsFontSize, dsLabelsFontColor))
 	for i := 0; i < vCount; i++ {
 		s.Text(dsMarginLeft-dsValuesMargin, top, fmt.Sprintf("%d", val))
 		val += d.VStep
@@ -144,10 +147,10 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 
 	// Draw linear graphs
 
-	fmt.Println(minValue, maxValue)
-	fmt.Println(d.categories)
+	lHeight := (dsMarginBottom - dsLabelsMargin - dsLabelsFontSize) / (len(d.categories) + 1)
+	lTop := d.Height - dsMarginBottom + dsLabelsMargin + lHeight/2
 
-	for _, cat := range d.categories {
+	for name, cat := range d.categories {
 
 		s.Group(fmt.Sprintf("stroke-width:%d;stroke:%s", dsLinearWidth, cat.Color))
 
@@ -163,13 +166,24 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 			y2 := d.Height - dsMarginBottom - int((cat.values[iVal+1]-minValue)/valLength*yLength)
 
 			s.Line(x1, y1, x2, y2)
-			fmt.Println(valLength, yLength, x1, y1, x2, y2)
+			//s.Qbez(x1, y1, x2, y1, x2, y2)
 
 			y1 = y2
 			x1 = x2
 		}
 		s.Gend()
+
+		// Draw legend
+		// TODO draw legend in any side
+		// TODO do not draw legend if it's do not fit?
+		s.Rect(d.Width/2, lTop + lHeight/2 - dsLegendMarkSize/2, dsLegendMarkSize, dsLegendMarkSize,
+			fmt.Sprintf("fill:%s", cat.Color))
+		s.Text(d.Width/2 + dsLegendMarkSize + 5, lTop + lHeight/2, name,
+			fmt.Sprintf("alignment-baseline:central;font-size:%d;fill:%s", dsLegendFontSize, dsLabelsFontColor))
+		lTop += lHeight
+
 	}
+
 
 	s.End()
 
