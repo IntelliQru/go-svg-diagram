@@ -13,6 +13,7 @@ type PieCategory struct {
 	Name   string
 	Color  string
 	Value  float64
+	Shift  uint
 }
 
 type PieDiagram struct {
@@ -99,8 +100,15 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 			var nextx int = int(math.Cos(radseg) * float64(radius))
 			var nexty int = int(math.Sin(radseg) * float64(radius))
 
+			radseg = math.Pi / 180.0 * (seg - (cat.Value / d.total * 360)/2)
+			var sx int = int(math.Cos(radseg) * float64(cat.Shift))
+			var sy int = int(math.Sin(radseg) * float64(cat.Shift))
+
+			x := cx + sx
+			y := cy - sy
+
 			path := fmt.Sprintf("M %d,%d l %d,%d a%d,%d 0 " + arc + ",0 %d,%d z",
-				cx, cy,
+				x, y,
 				lastx, -lasty,
 				radius, radius,
 				nextx - lastx,

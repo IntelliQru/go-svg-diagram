@@ -127,6 +127,7 @@ func pie(w http.ResponseWriter, req *http.Request) {
 
 	cat = d.NewCategory("Category 5")
 	cat.Value = 24
+	cat.Shift = 20
 
 	cat = d.NewCategory("Category 6")
 	cat.Value = 57
