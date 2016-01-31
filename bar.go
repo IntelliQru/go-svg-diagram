@@ -9,19 +9,19 @@ import (
 	"math/rand"
 )
 
-type LinearCategory struct {
-	Name	  string
-	Color     string
-	LineWidth int
-	values    []float64
+type BarCategory struct {
+	Name   string
+	Color  string
+	values []float64
 }
 
-func (lc *LinearCategory) SetValues(vals []float64) {
+func (lc *BarCategory) SetValues(vals []float64) {
 
-	lc.values = append(lc.values, vals...)
+	lc.values = make([]float64, len(vals))
+	copy(lc.values, vals)
 }
 
-type LinearDiagram struct {
+type BarDiagram struct {
 	Title  string
 	Width  int
 	Height int
@@ -31,12 +31,12 @@ type LinearDiagram struct {
 	MaxValue float64
 	Step     float64
 
-	categories []*LinearCategory
+	categories []*BarCategory
 	labels     []string
 }
 
-func (d *LinearDiagram) NewCategory(name string) (cat *LinearCategory) {
-	n := new(LinearCategory)
+func (d *BarDiagram) NewCategory(name string) (cat *BarCategory) {
+	n := new(BarCategory)
 
 	n.values = make([]float64, 0)
 	n.Name = name
@@ -45,13 +45,13 @@ func (d *LinearDiagram) NewCategory(name string) (cat *LinearCategory) {
 	return n
 }
 
-func (d *LinearDiagram) SetLabels(labels []string) {
+func (d *BarDiagram) SetLabels(labels []string) {
 
 	d.labels = make([]string, len(labels))
 	copy(d.labels, labels)
 }
 
-func (d *LinearDiagram) validate() (err error) {
+func (d *BarDiagram) validate() (err error) {
 
 	if d.Step <= 0 {
 		err = errors.New("Error: Step must be greater than zero")
@@ -61,7 +61,6 @@ func (d *LinearDiagram) validate() (err error) {
 		err = errors.New("Error: Nothing to build, categories are empty")
 	}
 
-	// Calculate Min and Max values
 	for _, cat := range d.categories {
 		for iVal := 0; iVal < len(cat.values); iVal++ {
 			if d.MaxValue < cat.values[iVal] {
@@ -70,9 +69,6 @@ func (d *LinearDiagram) validate() (err error) {
 			if d.MinValue > cat.values[iVal] {
 				d.MinValue = cat.values[iVal]
 			}
-		}
-		if cat.LineWidth == 0 {
-			cat.LineWidth = 1
 		}
 
 		// Generate random color if it's doesn't set
@@ -88,7 +84,7 @@ func (d *LinearDiagram) validate() (err error) {
 	return
 }
 
-func (d *LinearDiagram) build(w io.Writer) (err error) {
+func (d *BarDiagram) build(w io.Writer) (err error) {
 
 	if err = d.validate(); err != nil {
 		return
@@ -110,12 +106,12 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 
 	// Write labels
 	lenLabels := len(d.labels)
-	xStep := (d.Width - dsMarginLeft - dsMarginRight) / (lenLabels - 1)
-	left := dsMarginLeft
+	segmentWidth := (d.Width - dsMarginLeft - dsMarginRight) / lenLabels
+	left := dsMarginLeft + segmentWidth/2
 	s.Group(fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
 	for i := 0; i < lenLabels; i++ {
 		s.Text(left, d.Height-dsMarginBottom+dsLabelsMargin, d.labels[i])
-		left += xStep
+		left += segmentWidth
 	}
 	s.Gend()
 
@@ -153,14 +149,6 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 
 		s.Group("stroke-width:1;stroke:lightgray")
 
-		// Vertical grid
-		left = dsMarginLeft + xStep
-		for i := 1; i < lenLabels; i++ {
-
-			s.Line(left, dsMarginTop, left, d.Height-dsMarginBottom)
-			left += xStep
-		}
-
 		// Horizontal grid
 		top = d.Height - dsMarginBottom - stepHeight
 		for i := 1; i < stepsCount; i++ {
@@ -171,48 +159,40 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 		s.Gend()
 	}
 
-	// Draw linear graphs and legend
+	var barsCount int = len(d.categories)
+	var barWidth int = segmentWidth/barsCount - dsBarMargin*2
+
+	for i := 0; i < lenLabels; i++ {
+
+		var multiplier float64 = float64(stepHeight) / d.Step
+		x := i*segmentWidth + dsMarginLeft + dsBarMargin
+
+		for c := 0; c < barsCount; c++ {
+			if len(d.categories[c].values) > i {
+
+				var pointValue float64 = d.categories[c].values[i] - d.MinValue
+				var stepsInPointValue int = int(pointValue / d.Step)
+				var remain int = int((pointValue - float64(stepsInPointValue)*d.Step) * multiplier)
+
+				var barHeight int = int(pointValue/d.Step)*stepHeight + remain
+				y := d.Height - dsMarginBottom - barHeight
+
+				s.Rect(x, y, barWidth, barHeight, fmt.Sprintf("fill:%s", d.categories[c].Color))
+
+				// Draw value
+				s.Text(x+barWidth/2, y-dsBarMargin, fmt.Sprintf("%.2f", d.categories[c].values[i]),
+					fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+			}
+			x += barWidth + dsBarMargin
+		}
+
+	}
 
 	// Calculate height and start for legend
 	lHeight := (dsMarginBottom - dsLabelsMargin) / (len(d.categories) + 1)
 	lTop := d.Height - dsMarginBottom + dsLabelsMargin + lHeight/2
 
 	for _, cat := range d.categories {
-
-		s.Group(fmt.Sprintf("stroke-width:%d;stroke:%s", cat.LineWidth, cat.Color))
-
-		x1 := dsMarginLeft
-		//y1 := d.Height - dsMarginBottom - int((cat.values[0] - d.MinValue) * pxInVal)
-		var multiplier float64 = float64(stepHeight) / d.Step
-
-		var pointValue float64 = cat.values[0] - d.MinValue
-		var stepsInPointValue int = int(pointValue / d.Step)
-		var remain int = int((pointValue - float64(stepsInPointValue)*d.Step) * multiplier)
-
-		y1 := d.Height - dsMarginBottom - int(pointValue/d.Step)*stepHeight - remain
-
-		lenVals := len(cat.values)
-		if lenLabels < lenVals {
-			lenVals = lenLabels
-		}
-
-		for iVal := 0; iVal < (lenVals - 1); iVal++ {
-
-			x2 := dsMarginLeft + (iVal+1)*xStep
-
-			pointValue = cat.values[iVal+1] - d.MinValue
-			stepsInPointValue := int(pointValue / d.Step)
-			remain = int((pointValue - float64(stepsInPointValue)*d.Step) * multiplier)
-
-			y2 := d.Height - dsMarginBottom - int(pointValue/d.Step)*stepHeight - remain
-
-			s.Line(x1, y1, x2, y2)
-
-			y1 = y2
-			x1 = x2
-		}
-		s.Gend()
-
 		// Draw legend
 		// TODO draw legend in any side
 		// TODO do not draw legend if it's do not fit?
@@ -221,7 +201,6 @@ func (d *LinearDiagram) build(w io.Writer) (err error) {
 		s.Text(d.Width/2+dsLegendMarkSize+5, lTop+lHeight/2, cat.Name,
 			fmt.Sprintf("alignment-baseline:middle;font-size:%d;fill:%s", dsLegendFontSize, dsLabelsFontColor))
 		lTop += lHeight
-
 	}
 
 	s.End()

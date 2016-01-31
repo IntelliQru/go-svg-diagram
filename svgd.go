@@ -1,13 +1,12 @@
 package svgd
 
 import (
-	"io"
 	"errors"
+	"io"
 )
 
-
 const (
-	dsMarginLeft   = 50
+	dsMarginLeft   = 80
 	dsMarginRight  = 50
 	dsMarginTop    = 50
 	dsMarginBottom = 150
@@ -23,18 +22,18 @@ const (
 	dsTitleFontColor  = "#3C3C3C"
 	dsLabelsFontColor = "#3C3C3C"
 
-	dsLegendMarkSize = 15
-	dsLegendFontSize = 10
+	dsLegendMarkSize  = 15
+	dsLegendFontSize  = 10
 	dsLegendFontColor = "#3C3C3C"
-)
 
+	dsBarMargin       = 5
+)
 
 type diagramInterface interface {
 	build(w io.Writer) error
 }
 
 type Diagram struct {
-
 	diagram diagramInterface
 }
 
@@ -47,13 +46,21 @@ func NewDiagram() *Diagram {
 
 func (d *Diagram) CreateLinear() (dg *LinearDiagram) {
 	newLD := new(LinearDiagram)
-	newLD.categories = make(map[string]*LinearCategory, 0)
+	newLD.categories = make([]*LinearCategory, 0)
 
 	d.diagram = newLD
 
 	return newLD
 }
 
+func (d *Diagram) CreateBar() (dg *BarDiagram) {
+	newLD := new(BarDiagram)
+	newLD.categories = make([]*BarCategory, 0)
+
+	d.diagram = newLD
+
+	return newLD
+}
 
 func (d *Diagram) Build(w io.Writer) (err error) {
 
