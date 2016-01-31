@@ -7,7 +7,7 @@ import (
 
 const (
 	dsMarginLeft   = 80
-	dsMarginRight  = 50
+	dsMarginRight  = 100
 	dsMarginTop    = 50
 	dsMarginBottom = 150
 
@@ -24,10 +24,11 @@ const (
 
 	dsLegendMarkSize  = 15
 	dsLegendFontSize  = 10
+	dsLegendMargin = 10
 	dsLegendFontColor = "#3C3C3C"
 
 	dsBarMargin       = 5
-	dsPieMargin		  = 10
+	dsPieMargin		  = 25
 )
 
 type diagramInterface interface {

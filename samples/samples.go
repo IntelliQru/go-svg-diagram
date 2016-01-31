@@ -33,22 +33,15 @@ func linear(w http.ResponseWriter, req *http.Request) {
 	ld.MaxValue = 600
 
 	cat := ld.NewCategory("Выручка 2014")
-	cat.Color = "red"
-	cat.LineWidth = 1
 	cat.SetValues([]float64{-25, 460, 100})
 
 	cat = ld.NewCategory("Выручка 2015")
-	cat.Color = "green"
-	cat.LineWidth = 1
-	cat.SetValues([]float64{34, 765})
+	cat.SetValues([]float64{234, 23, 345, 76, 267})
 
 	cat = ld.NewCategory("Выручка 2014")
-	cat.Color = "red"
-	cat.LineWidth = 1
-	cat.SetValues([]float64{-25, 460, 100})
+	cat.SetValues([]float64{368, -10, 100, 451, 589, 99})
 
 	cat = ld.NewCategory("Выручка 2015")
-	cat.Color = "green"
 	cat.LineWidth = 2
 	cat.SetValues([]float64{34, 765, 367, 796, 234, 235, 342, 23, 23, 345, 456, -300, 456, 34, 56, 345, 56, 98, 123, 345, 234, 234, 234, 345})
 
@@ -111,29 +104,39 @@ func pie(w http.ResponseWriter, req *http.Request) {
 	d.Title = "Заголовок диаграммы";
 	d.Width = 900;
 	d.Height = 600;
+	d.ShowValues = true
+	d.Radius = 150
+	d.ValuesShift = 180
 
+	var shift uint = 4
 
 	cat := d.NewCategory("Category 1")
 	cat.Value = 100
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 2")
 	cat.Value = 200
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 3")
 	cat.Value = 300
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 4")
 	cat.Value = 12
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 5")
 	cat.Value = 24
-	cat.Shift = 20
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 6")
 	cat.Value = 57
+	cat.Shift = shift
 
 	cat = d.NewCategory("Category 7")
 	cat.Value = 99
+	cat.Shift = shift
 
 	err := dg.Build(w)
 

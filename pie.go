@@ -21,6 +21,8 @@ type PieDiagram struct {
 	Width  uint
 	Height uint
 	ShowValues bool
+	ValuesShift uint
+	Radius uint
 
 	categories []*PieCategory
 	total float64
@@ -53,6 +55,24 @@ func (d *PieDiagram) validate() (err error) {
 		err = errors.New("Error: Total is zero")
 	}
 
+	var radius uint
+	var graphWidth uint = uint(d.Width) - dsMarginLeft - dsMarginRight
+	var graphHeight uint = uint(d.Height) - dsMarginBottom - dsMarginTop
+	if graphWidth > graphHeight {
+		radius = (graphHeight - 2*dsPieMargin)/2
+	} else {
+		radius = (graphWidth - 2*dsPieMargin)/2
+	}
+
+	if d.Radius == 0 || d.Radius > radius {
+		d.Radius = radius
+	}
+
+	if d.ShowValues && d.ValuesShift == 0 {
+		d.ValuesShift = d.Radius + dsPieMargin/2
+	}
+
+
 	return
 }
 
@@ -71,21 +91,20 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 			dsTitleFontSize, dsTitleFontColor))
 
 
-	var radius int
-	var graphWidth int = int(d.Width) - dsMarginLeft - dsMarginRight
-	var graphHeight int = int(d.Height) - dsMarginBottom - dsMarginTop
-	if graphWidth > graphHeight {
-		radius = (graphHeight - 2*dsPieMargin)/2
-	} else {
-		radius = (graphWidth - 2*dsPieMargin)/2
-	}
-
 	var cx int = dsMarginLeft + (int(d.Width) - dsMarginLeft - dsMarginRight)/2
 	var cy int = int(d.Height) - dsMarginBottom - (int(d.Height) - dsMarginBottom - dsMarginTop)/2
 
+	// Calculate height and start for legend
+	var lHeight int = dsLegendMarkSize
+	if dsLegendFontSize > dsLegendMarkSize  {
+		lHeight = dsLegendFontSize
+	}
+	lx := d.Width - dsMarginLeft - dsLegendMargin
+	ly := dsMarginTop
+
 	if len(d.categories) > 1 {
 
-		var lastx int = radius
+		var lastx int = int(d.Radius)
 		var lasty int = 0
 		var seg float64 = 0
 
@@ -97,8 +116,8 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 				arc = "1"
 			}
 			var radseg float64 = math.Pi / 180.0 * seg
-			var nextx int = int(math.Cos(radseg) * float64(radius))
-			var nexty int = int(math.Sin(radseg) * float64(radius))
+			var nextx int = int(math.Cos(radseg) * float64(d.Radius))
+			var nexty int = int(math.Sin(radseg) * float64(d.Radius))
 
 			radseg = math.Pi / 180.0 * (seg - (cat.Value / d.total * 360)/2)
 			var sx int = int(math.Cos(radseg) * float64(cat.Shift))
@@ -110,17 +129,47 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 			path := fmt.Sprintf("M %d,%d l %d,%d a%d,%d 0 " + arc + ",0 %d,%d z",
 				x, y,
 				lastx, -lasty,
-				radius, radius,
+				d.Radius, d.Radius,
 				nextx - lastx,
 				-(nexty - lasty))
 
 			s.Path(path, "fill:" + cat.Color)
 
+			if d.ShowValues {
+				// Draw value
+
+				var sx int = int(math.Cos(radseg) * float64(d.ValuesShift))
+				var sy int = int(math.Sin(radseg) * float64(d.ValuesShift))
+				x := cx + sx
+				y := cy - sy
+
+				s.Text(x, y, fmt.Sprintf("%.2f", cat.Value),
+					fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+			}
+
 			lastx = nextx
 			lasty = nexty
+
+			// Draw legend
+			// TODO draw legend in any side
+			// TODO do not draw legend if it's do not fit?
+			s.Rect(int(lx), int(ly), dsLegendMarkSize, dsLegendMarkSize,
+				fmt.Sprintf("fill:%s", cat.Color))
+			s.Text(int(lx)+dsLegendMarkSize+5, ly+lHeight/2+dsLegendFontSize/2, cat.Name,
+				fmt.Sprintf("font-size:%d;fill:%s", dsLegendFontSize, dsLabelsFontColor))
+			ly += lHeight + dsLegendMargin
 		}
+
+
+
+
 	} else {
-		s.Circle(cx, cy, radius, "fill:"+d.categories[0].Color)
+		s.Circle(cx, cy, int(d.Radius), "fill:"+d.categories[0].Color)
+		if d.ShowValues {
+			// Draw value
+			s.Text(cx, cy, fmt.Sprintf("%.2f", d.categories[0].Value),
+				fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+		}
 	}
 
 	s.End()
