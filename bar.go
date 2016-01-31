@@ -23,8 +23,8 @@ func (lc *BarCategory) SetValues(vals []float64) {
 
 type BarDiagram struct {
 	Title  string
-	Width  int
-	Height int
+	Width  uint
+	Height uint
 	Grid   bool
 	ShowValues bool
 
@@ -92,26 +92,26 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 	}
 
 	s := svg.New(w)
-	s.Start(d.Width, d.Height)
+	s.Start(int(d.Width), int(d.Height))
 
 	// Title
-	s.Text(d.Width/2, dsMarginTop/2, d.Title,
+	s.Text(int(d.Width)/2, dsMarginTop/2, d.Title,
 		fmt.Sprintf("text-anchor:middle;alignment-baseline:central;font-size:%d;fill:%s",
 			dsTitleFontSize, dsTitleFontColor))
 
 	// Draw X and Y axis
-	s.Line(dsMarginLeft, d.Height-dsMarginBottom, d.Width-dsMarginRight, d.Height-dsMarginBottom,
+	s.Line(dsMarginLeft, int(d.Height)-dsMarginBottom, int(d.Width)-dsMarginRight, int(d.Height)-dsMarginBottom,
 		fmt.Sprintf("stroke-width:%d;stroke:%s;", dsAxisLineWidth, dsAxisLineColor))
-	s.Line(dsMarginLeft, d.Height-dsMarginBottom, dsMarginLeft, dsMarginTop,
+	s.Line(dsMarginLeft, int(d.Height)-dsMarginBottom, dsMarginLeft, dsMarginTop,
 		fmt.Sprintf("stroke-width:%d;stroke:%s;", dsAxisLineWidth, dsAxisLineColor))
 
 	// Write labels
 	lenLabels := len(d.labels)
-	segmentWidth := (d.Width - dsMarginLeft - dsMarginRight) / lenLabels
+	segmentWidth := (int(d.Width) - dsMarginLeft - dsMarginRight) / lenLabels
 	left := dsMarginLeft + segmentWidth/2
 	s.Group(fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
 	for i := 0; i < lenLabels; i++ {
-		s.Text(left, d.Height-dsMarginBottom+dsLabelsMargin, d.labels[i])
+		s.Text(left, int(d.Height)-dsMarginBottom+dsLabelsMargin, d.labels[i])
 		left += segmentWidth
 	}
 	s.Gend()
@@ -127,19 +127,19 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 	}
 
 	// Calculate dimensions
-	var graphHeight int = d.Height - dsMarginBottom - dsMarginTop
+	var graphHeight int = int(d.Height) - dsMarginBottom - dsMarginTop
 	var valSegment float64 = d.MaxValue - d.MinValue
 	var stepsCount int = int(valSegment/d.Step+0.5) + 1
 	var stepHeight int = graphHeight / (stepsCount - 1)
 
 	// Write Y values
 	textValue := d.MinValue
-	top := d.Height - dsMarginBottom
+	top := int(d.Height) - dsMarginBottom
 
 	s.Group(fmt.Sprintf("text-anchor:end;font-size:%d;fill:%s",
 		dsLabelsFontSize, dsLabelsFontColor))
 	for i := 0; i < stepsCount; i++ {
-		s.Text(dsMarginLeft-dsValuesMargin, top, fmt.Sprintf("%.2f", textValue), "alignment-baseline:central")
+		s.Text(dsMarginLeft-dsValuesMargin, top, fmt.Sprintf("%.2f", textValue))
 		textValue += d.Step
 		top -= stepHeight
 	}
@@ -151,9 +151,9 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 		s.Group("stroke-width:1;stroke:lightgray")
 
 		// Horizontal grid
-		top = d.Height - dsMarginBottom - stepHeight
+		top = int(d.Height) - dsMarginBottom - stepHeight
 		for i := 1; i < stepsCount; i++ {
-			s.Line(dsMarginLeft, top, d.Width-dsMarginRight, top)
+			s.Line(dsMarginLeft, top, int(d.Width)-dsMarginRight, top)
 			top -= stepHeight
 		}
 
@@ -176,7 +176,7 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 				var remain int = int((pointValue - float64(stepsInPointValue)*d.Step) * multiplier)
 
 				var barHeight int = int(pointValue/d.Step)*stepHeight + remain
-				y := d.Height - dsMarginBottom - barHeight
+				y := int(d.Height) - dsMarginBottom - barHeight
 
 				s.Rect(x, y, barWidth, barHeight, fmt.Sprintf("fill:%s", d.categories[c].Color))
 
@@ -193,16 +193,16 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 
 	// Calculate height and start for legend
 	lHeight := (dsMarginBottom - dsLabelsMargin) / (len(d.categories) + 1)
-	lTop := d.Height - dsMarginBottom + dsLabelsMargin + lHeight/2
+	lTop := int(d.Height) - dsMarginBottom + dsLabelsMargin + lHeight/2
 
 	for _, cat := range d.categories {
 		// Draw legend
 		// TODO draw legend in any side
 		// TODO do not draw legend if it's do not fit?
-		s.Rect(d.Width/2, lTop+lHeight/2-dsLegendMarkSize/2, dsLegendMarkSize, dsLegendMarkSize,
+		s.Rect(int(d.Width)/2, lTop+lHeight/2-dsLegendMarkSize/2, dsLegendMarkSize, dsLegendMarkSize,
 			fmt.Sprintf("fill:%s", cat.Color))
-		s.Text(d.Width/2+dsLegendMarkSize+5, lTop+lHeight/2, cat.Name,
-			fmt.Sprintf("alignment-baseline:middle;font-size:%d;fill:%s", dsLegendFontSize, dsLabelsFontColor))
+		s.Text(int(d.Width)/2+dsLegendMarkSize+5, lTop+lHeight/2+dsLegendFontSize/2, cat.Name,
+			fmt.Sprintf("font-size:%d;fill:%s", dsLegendFontSize, dsLabelsFontColor))
 		lTop += lHeight
 	}
 

@@ -18,8 +18,8 @@ type PieCategory struct {
 
 type PieDiagram struct {
 	Title  string
-	Width  int
-	Height int
+	Width  uint
+	Height uint
 	ShowValues bool
 
 	categories []*PieCategory
@@ -63,25 +63,25 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 	}
 
 	s := svg.New(w)
-	s.Start(d.Width, d.Height)
+	s.Start(int(d.Width), int(d.Height))
 
 	// Title
-	s.Text(d.Width/2, dsMarginTop/2, d.Title,
+	s.Text(int(d.Width)/2, dsMarginTop/2, d.Title,
 		fmt.Sprintf("text-anchor:middle;alignment-baseline:central;font-size:%d;fill:%s",
 			dsTitleFontSize, dsTitleFontColor))
 
 
 	var radius int
-	var graphWidth int = d.Width - dsMarginLeft - dsMarginRight
-	var graphHeight int = d.Height - dsMarginBottom - dsMarginTop
+	var graphWidth int = int(d.Width) - dsMarginLeft - dsMarginRight
+	var graphHeight int = int(d.Height) - dsMarginBottom - dsMarginTop
 	if graphWidth > graphHeight {
 		radius = (graphHeight - 2*dsPieMargin)/2
 	} else {
 		radius = (graphWidth - 2*dsPieMargin)/2
 	}
 
-	var cx int = dsMarginLeft + (d.Width - dsMarginLeft - dsMarginRight)/2
-	var cy int = d.Height - dsMarginBottom - (d.Height - dsMarginBottom - dsMarginTop)/2
+	var cx int = dsMarginLeft + (int(d.Width) - dsMarginLeft - dsMarginRight)/2
+	var cy int = int(d.Height) - dsMarginBottom - (int(d.Height) - dsMarginBottom - dsMarginTop)/2
 
 	if len(d.categories) > 1 {
 
