@@ -27,6 +27,7 @@ const (
 	dsLegendFontColor = "#3C3C3C"
 
 	dsBarMargin       = 5
+	dsPieMargin		  = 10
 )
 
 type diagramInterface interface {
@@ -56,6 +57,15 @@ func (d *Diagram) CreateLinear() (dg *LinearDiagram) {
 func (d *Diagram) CreateBar() (dg *BarDiagram) {
 	newLD := new(BarDiagram)
 	newLD.categories = make([]*BarCategory, 0)
+
+	d.diagram = newLD
+
+	return newLD
+}
+
+func (d *Diagram) CreatePie() (dg *PieDiagram) {
+	newLD := new(PieDiagram)
+	newLD.categories = make([]*PieCategory, 0)
 
 	d.diagram = newLD
 
