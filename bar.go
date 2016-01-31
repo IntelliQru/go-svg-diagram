@@ -26,6 +26,7 @@ type BarDiagram struct {
 	Width  int
 	Height int
 	Grid   bool
+	ShowValues bool
 
 	MinValue float64
 	MaxValue float64
@@ -179,9 +180,11 @@ func (d *BarDiagram) build(w io.Writer) (err error) {
 
 				s.Rect(x, y, barWidth, barHeight, fmt.Sprintf("fill:%s", d.categories[c].Color))
 
-				// Draw value
-				s.Text(x+barWidth/2, y-dsBarMargin, fmt.Sprintf("%.2f", d.categories[c].values[i]),
-					fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+				if d.ShowValues {
+					// Draw value
+					s.Text(x + barWidth / 2, y - dsBarMargin, fmt.Sprintf("%.2f", d.categories[c].values[i]),
+						fmt.Sprintf("text-anchor:middle;font-size:%d;fill:%s", dsLabelsFontSize, dsLabelsFontColor))
+				}
 			}
 			x += barWidth + dsBarMargin
 		}
