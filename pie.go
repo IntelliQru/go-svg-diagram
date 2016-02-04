@@ -56,8 +56,10 @@ func (d *PieDiagram) validate() (err error) {
 	}
 
 	var radius uint
-	var graphWidth uint = uint(d.Width) - dsMarginLeft - dsMarginRight
-	var graphHeight uint = uint(d.Height) - dsMarginBottom - dsMarginTop
+	var graphWidth uint = uint(d.Width) - dsPieLegendWidth
+
+	var graphHeight uint = uint(d.Height) - dsMarginTop
+
 	if graphWidth > graphHeight {
 		radius = (graphHeight - 2*dsPieMargin)/2
 	} else {
@@ -91,15 +93,15 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 			dsTitleFontSize, dsTitleFontColor))
 
 
-	var cx int = dsMarginLeft + (int(d.Width) - dsMarginLeft - dsMarginRight)/2
-	var cy int = int(d.Height) - dsMarginBottom - (int(d.Height) - dsMarginBottom - dsMarginTop)/2
+	var cx int = (int(d.Width) - dsPieLegendWidth)/2
+	var cy int = int(d.Height) - int(d.Height)/2
 
 	// Calculate height and start for legend
 	var lHeight int = dsLegendMarkSize
 	if dsLegendFontSize > dsLegendMarkSize  {
 		lHeight = dsLegendFontSize
 	}
-	lx := d.Width - dsMarginLeft - dsLegendMargin
+	lx := d.Width - dsPieLegendWidth - dsLegendMargin
 	ly := dsMarginTop
 
 	if len(d.categories) > 1 {

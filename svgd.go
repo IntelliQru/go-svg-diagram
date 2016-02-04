@@ -29,6 +29,7 @@ const (
 
 	dsBarMargin       = 5
 	dsPieMargin		  = 25
+	dsPieLegendWidth  = 100
 )
 
 type diagramInterface interface {

@@ -102,10 +102,9 @@ func pie(w http.ResponseWriter, req *http.Request) {
 	dg := svgd.NewDiagram()
 	d := dg.CreatePie()
 	d.Title = "Заголовок диаграммы";
-	d.Width = 900;
-	d.Height = 600;
+	d.Width = 700;
+	d.Height = 500;
 	d.ShowValues = true
-	d.Radius = 150
 	d.ValuesShift = 180
 
 	var shift uint = 4
