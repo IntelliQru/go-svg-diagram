@@ -68,6 +68,17 @@ func (d *PieDiagram) validate() (err error) {
 		radius = (d.graphWidth - 2*dsPieMargin)/2
 	}
 
+	// Calculate max radius depending on max PieCategory.Shift
+	var maxShift uint
+	for _, cat := range d.categories {
+		if cat.Shift > maxShift {
+			maxShift = cat.Shift
+		}
+	}
+
+	radius -= maxShift
+
+
 	if d.Radius == 0 || d.Radius > radius {
 		d.Radius = radius
 	}
