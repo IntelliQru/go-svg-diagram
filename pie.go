@@ -103,7 +103,7 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 	if dsLegendFontSize > dsLegendMarkSize  {
 		lHeight = dsLegendFontSize
 	}
-	lx := d.graphWidth
+	lx := d.graphWidth + dsPieMargin
 	ly := dsMarginTop
 
 	if len(d.categories) > 1 {
