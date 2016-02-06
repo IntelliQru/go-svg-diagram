@@ -26,6 +26,8 @@ type PieDiagram struct {
 
 	categories []*PieCategory
 	total float64
+	graphWidth uint
+	graphHeight uint
 }
 
 func (d *PieDiagram) NewCategory(name string) (cat *PieCategory) {
@@ -56,14 +58,14 @@ func (d *PieDiagram) validate() (err error) {
 	}
 
 	var radius uint
-	var graphWidth uint = uint(d.Width) - dsPieLegendWidth
+	d.graphWidth = uint(float64(d.Width) * 0.66)
 
-	var graphHeight uint = uint(d.Height) - dsMarginTop
+	d.graphHeight = uint(d.Height) - dsMarginTop
 
-	if graphWidth > graphHeight {
-		radius = (graphHeight - 2*dsPieMargin)/2
+	if d.graphWidth > d.graphHeight {
+		radius = (d.graphHeight - 2*dsPieMargin)/2
 	} else {
-		radius = (graphWidth - 2*dsPieMargin)/2
+		radius = (d.graphWidth - 2*dsPieMargin)/2
 	}
 
 	if d.Radius == 0 || d.Radius > radius {
@@ -93,15 +95,15 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 			dsTitleFontSize, dsTitleFontColor))
 
 
-	var cx int = (int(d.Width) - dsPieLegendWidth)/2
-	var cy int = int(d.Height) - int(d.Height)/2
+	var cx int = int(d.graphWidth/2)
+	var cy int = dsMarginTop + int(d.graphHeight/2)
 
 	// Calculate height and start for legend
 	var lHeight int = dsLegendMarkSize
 	if dsLegendFontSize > dsLegendMarkSize  {
 		lHeight = dsLegendFontSize
 	}
-	lx := d.Width - dsPieLegendWidth - dsLegendMargin
+	lx := d.graphWidth
 	ly := dsMarginTop
 
 	if len(d.categories) > 1 {
