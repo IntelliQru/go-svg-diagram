@@ -22,6 +22,7 @@ type PieDiagram struct {
 	Height uint
 	ShowValues bool
 	ValuesShift uint
+	LegendMarginTop uint
 	Radius uint
 
 	categories []*PieCategory
@@ -87,7 +88,6 @@ func (d *PieDiagram) validate() (err error) {
 		d.ValuesShift = d.Radius + dsPieMargin/2
 	}
 
-
 	return
 }
 
@@ -115,7 +115,7 @@ func (d *PieDiagram) build(w io.Writer) (err error) {
 		lHeight = dsLegendFontSize
 	}
 	lx := d.graphWidth
-	ly := dsMarginTop + dsPieMargin
+	ly := int(dsMarginTop + d.LegendMarginTop)
 
 	if len(d.categories) > 1 {
 
